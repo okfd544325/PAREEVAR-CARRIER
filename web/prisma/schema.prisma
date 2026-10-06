@@ -7,348 +7,319 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String
-  role          String    @default("STUDENT")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  studentProfile StudentProfile?
-  parentProfile  ParentProfile?
-  familyMembers  FamilyMember[]
-  studentFamilyMembers FamilyMember[] @relation("StudentFamily")
+  id                   String          @id @default(cuid())
+  name                 String?
+  email                String          @unique
+  password             String
+  role                 String          @default("STUDENT")
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  studentFamilyMembers FamilyMember[]  @relation("StudentFamily")
+  familyMembers        FamilyMember[]
+  parentProfile        ParentProfile?
+  studentProfile       StudentProfile?
 }
 
 model StudentProfile {
-  id             String    @id @default(cuid())
-  userId         String    @unique
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  age            Int?
-  education      String?
-  stream         String?
-  marks          Float?
-  location       String?
-  interests      String
-  skills         String
-  budget         String?
-  preferredLoc   String?
-  careerGoal     String?
-  coursePrefs    String
-  
-  assessments    Assessment[]
-  recommendations Recommendation[]
-  savedOptions   SavedOption[]
-  skillGaps      SkillGap[]
+  id                String                    @id @default(cuid())
+  userId            String                    @unique
+  age               Int?
+  education         String?
+  stream            String?
+  marks             Float?
+  location          String?
+  interests         String
+  skills            String
+  budget            String?
+  preferredLoc      String?
+  careerGoal        String?
+  coursePrefs       String
+  assessments       Assessment[]
+  decisionRooms     FamilyDecisionRoom[]
+  recommendations   Recommendation[]
+  savedOptions      SavedOption[]
+  skillGaps         SkillGap[]
   careerPreferences StudentCareerPreference[]
-  decisionRooms    FamilyDecisionRoom[]
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Assessment {
   id               String         @id @default(cuid())
   studentProfileId String
+  logical          Int            @default(0)
+  numerical        Int            @default(0)
+  technical        Int            @default(0)
+  creativity       Int            @default(0)
+  communication    Int            @default(0)
+  practical        Int            @default(0)
+  problemSolving   Int            @default(0)
+  createdAt        DateTime       @default(now())
   studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  
-  logical          Int @default(0)
-  numerical        Int @default(0)
-  technical        Int @default(0)
-  creativity       Int @default(0)
-  communication    Int @default(0)
-  practical        Int @default(0)
-  problemSolving   Int @default(0)
-  
-  createdAt        DateTime @default(now())
 }
 
 model Career {
-  id               String   @id @default(cuid())
-  title            String
-  description      String
-  reqEducation     String
-  reqSkills        String
+  id                String           @id @default(cuid())
+  title             String
+  description       String
+  reqEducation      String
+  reqSkills         String
   careerProgression String?
-  
-  courses          Course[]
-  recommendations  Recommendation[]
+  courses           Course[]
+  recommendations   Recommendation[]
 }
 
 model Course {
-  id               String   @id @default(cuid())
-  name             String
-  duration         String
-  fees             Float
-  eligibility      String
-  
-  careerId         String?
-  career           Career?  @relation(fields: [careerId], references: [id])
-  
-  instituteId      String?
-  institute        Institute? @relation(fields: [instituteId], references: [id])
+  id          String     @id @default(cuid())
+  name        String
+  duration    String
+  fees        Float
+  eligibility String
+  careerId    String?
+  instituteId String?
+  institute   Institute? @relation(fields: [instituteId], references: [id])
+  career      Career?    @relation(fields: [careerId], references: [id])
 }
 
 model Institute {
-  id               String   @id @default(cuid())
-  name             String
-  location         String
-  feesAvg          Float?
-  officialInfo     String?
-  
-  courses          Course[]
+  id           String   @id @default(cuid())
+  name         String
+  location     String
+  feesAvg      Float?
+  officialInfo String?
+  courses      Course[]
 }
 
 model Scholarship {
-  id               String   @id @default(cuid())
-  title            String
-  eligibility      String
-  amount           Float
-  deadline         DateTime
-  officialSource   String?
+  id             String   @id @default(cuid())
+  title          String
+  eligibility    String
+  amount         Float
+  deadline       DateTime
+  officialSource String?
 }
 
 model Recommendation {
   id               String         @id @default(cuid())
   studentProfileId String
-  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  
   careerId         String
-  career           Career         @relation(fields: [careerId], references: [id], onDelete: Cascade)
-  
   matchScore       Float
   explanation      String?
-  
   createdAt        DateTime       @default(now())
+  career           Career         @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 }
 
 model SkillGap {
   id               String         @id @default(cuid())
   studentProfileId String
-  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  
   missingSkills    String
   learningPlan     String?
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 }
 
 model FamilyMember {
-  id               String   @id @default(cuid())
-  userId           String   // The Parent's User ID
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studentId        String   // The Student's User ID
-  student          User     @relation("StudentFamily", fields: [studentId], references: [id], onDelete: Cascade)
-  relation         String
-  authorized       Boolean  @default(false)
+  id         String  @id @default(cuid())
+  userId     String
+  studentId  String
+  relation   String
+  authorized Boolean @default(false)
+  student    User    @relation("StudentFamily", fields: [studentId], references: [id], onDelete: Cascade)
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SavedOption {
   id               String         @id @default(cuid())
   studentProfileId String
-  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  
-  itemType         String // "CAREER" | "COURSE" | "INSTITUTE"
+  itemType         String
   itemId           String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 }
 
 model ParentProfile {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  education        String?
-  occupation       String?
-  preferredSectors String?
-  preferredEduLevel String?
-  preferredLocation String?
-  budget           String?
+  id                    String                   @id @default(cuid())
+  userId                String                   @unique
+  education             String?
+  occupation            String?
+  preferredSectors      String?
+  preferredEduLevel     String?
+  preferredLocation     String?
+  budget                String?
   employmentVsHigherEdu String?
   vocationalWillingness Boolean?
-  
-  concerns         ParentConcern[]
-  preferences      ParentCareerPreference[]
-  decisionRooms    FamilyDecisionRoom[]
+  decisionRooms         FamilyDecisionRoom[]
+  preferences           ParentCareerPreference[]
+  concerns              ParentConcern[]
+  user                  User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ParentConcern {
-  id               String   @id @default(cuid())
-  parentProfileId  String
-  parentProfile    ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  concern          String
-  importance       String // LOW, MEDIUM, HIGH
-  isCustom         Boolean @default(false)
+  id              String        @id @default(cuid())
+  parentProfileId String
+  concern         String
+  importance      String
+  isCustom        Boolean       @default(false)
+  parentProfile   ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
 }
 
 model ParentCareerPreference {
-  id               String   @id @default(cuid())
-  parentProfileId  String
-  parentProfile    ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  careerId         String? // Optional if they enter free text or sector
-  careerName       String
-  sector           String?
+  id              String        @id @default(cuid())
+  parentProfileId String
+  careerId        String?
+  careerName      String
+  sector          String?
+  parentProfile   ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
 }
 
 model StudentCareerPreference {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   studentProfileId String
-  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  careerId         String? 
+  careerId         String?
   careerName       String
   sector           String?
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 }
 
 model FamilyDecisionRoom {
-  id               String   @id @default(cuid())
+  id               String             @id @default(cuid())
   studentProfileId String
-  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
   parentProfileId  String
-  parentProfile    ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
-  
-  status           String @default("NEEDS_DISCUSSION") // NO_CONFLICT, CONFLICT_DETECTED, NEEDS_DISCUSSION, RESOLVED
-  
-  conflicts        CareerConflict[]
+  status           String             @default("NEEDS_DISCUSSION")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
   comparisons      CareerComparison[]
+  conflicts        CareerConflict[]
   actionPlans      FamilyActionPlan[]
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  parentProfile    ParentProfile      @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  studentProfile   StudentProfile     @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
 }
 
 model CareerConflict {
-  id                   String   @id @default(cuid())
+  id                   String             @id @default(cuid())
   familyDecisionRoomId String
-  familyDecisionRoom   FamilyDecisionRoom @relation(fields: [familyDecisionRoomId], references: [id], onDelete: Cascade)
-  conflictType         String // CAREER, COURSE, SECTOR, LOCATION, BUDGET, EDUCATION_PATH
+  conflictType         String
   studentPref          String
   parentPref           String
-  severity             String // HIGH, MEDIUM, LOW
+  severity             String
   reason               String
+  familyDecisionRoom   FamilyDecisionRoom @relation(fields: [familyDecisionRoomId], references: [id], onDelete: Cascade)
 }
 
 model CareerComparison {
-  id                   String   @id @default(cuid())
+  id                   String             @id @default(cuid())
   familyDecisionRoomId String
-  familyDecisionRoom   FamilyDecisionRoom @relation(fields: [familyDecisionRoomId], references: [id], onDelete: Cascade)
-  
   studentCareerId      String?
   parentCareerId       String?
-  comparisonData       String // JSON string of matrix
+  comparisonData       String
+  familyDecisionRoom   FamilyDecisionRoom @relation(fields: [familyDecisionRoomId], references: [id], onDelete: Cascade)
 }
 
 model FamilyActionPlan {
-  id                   String   @id @default(cuid())
+  id                   String             @id @default(cuid())
   familyDecisionRoomId String
-  familyDecisionRoom   FamilyDecisionRoom @relation(fields: [familyDecisionRoomId], references: [id], onDelete: Cascade)
-  
   chosenCareer         String
   reasoning            String
   requiredSkills       String
   recommendedEdu       String
   approxCost           String
-  careerPathway        String // JSON of steps
+  careerPathway        String
   nextAction           String
   longTermAction       String
   discussionPoints     String
-  
-  status               String @default("SHORTLISTED") // SHORTLISTED, FINALIZED
+  status               String             @default("SHORTLISTED")
+  familyDecisionRoom   FamilyDecisionRoom @relation(fields: [familyDecisionRoomId], references: [id], onDelete: Cascade)
 }
 
-// ==========================================
-// LABOUR MARKET INTELLIGENCE SYSTEM (LMIS)
-// ==========================================
-
 model Sector {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String  @id @default(cuid())
+  name        String  @unique
   description String?
   trades      Trade[]
 }
 
 model Trade {
-  id              String   @id @default(cuid())
-  name            String
-  sectorId        String
-  sector          Sector   @relation(fields: [sectorId], references: [id])
-  ncoCode         String?
-  nsqfLevel       Int?
-  
-  demandSignals   LabourDemandSignal[]
+  id               String               @id @default(cuid())
+  name             String
+  sectorId         String
+  ncoCode          String?
+  nsqfLevel        Int?
+  forecasts        Forecast[]
+  gapAnalyses      GapAnalysis[]
+  demandSignals    LabourDemandSignal[]
+  sector           Sector               @relation(fields: [sectorId], references: [id])
   trainingCapacity TrainingCapacity[]
-  forecasts       Forecast[]
-  gapAnalyses     GapAnalysis[]
 }
 
 model Location {
-  id              String   @id @default(cuid())
-  state           String
-  district        String
-  
-  demandSignals   LabourDemandSignal[]
+  id               String               @id @default(cuid())
+  state            String
+  district         String
+  forecasts        Forecast[]
+  gapAnalyses      GapAnalysis[]
+  demandSignals    LabourDemandSignal[]
   trainingCapacity TrainingCapacity[]
-  forecasts       Forecast[]
-  gapAnalyses     GapAnalysis[]
 
   @@unique([state, district])
 }
 
 model LabourDemandSignal {
-  id          String   @id @default(cuid())
-  tradeId     String
-  trade       Trade    @relation(fields: [tradeId], references: [id])
-  locationId  String
-  location    Location @relation(fields: [locationId], references: [id])
-  value       Int
-  source      String   // e.g., "NCS", "JOB_PORTAL", "INDUSTRY"
-  period      String   // e.g., "2023-Q3", "2023-10"
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  tradeId    String
+  locationId String
+  value      Int
+  source     String
+  period     String
+  createdAt  DateTime @default(now())
+  location   Location @relation(fields: [locationId], references: [id])
+  trade      Trade    @relation(fields: [tradeId], references: [id])
 }
 
 model TrainingCapacity {
   id             String   @id @default(cuid())
   tradeId        String
-  trade          Trade    @relation(fields: [tradeId], references: [id])
   locationId     String
-  location       Location @relation(fields: [locationId], references: [id])
   capacity       Int
   instituteCount Int?
   period         String
   createdAt      DateTime @default(now())
+  location       Location @relation(fields: [locationId], references: [id])
+  trade          Trade    @relation(fields: [tradeId], references: [id])
 }
 
 model Forecast {
   id                 String   @id @default(cuid())
   tradeId            String
-  trade              Trade    @relation(fields: [tradeId], references: [id])
   locationId         String
-  location           Location @relation(fields: [locationId], references: [id])
   horizonMonths      Int
   forecastedDemand   Int
   forecastedCapacity Int
-  trend              String   // e.g., "UP", "DOWN", "FLAT"
+  trend              String
   createdAt          DateTime @default(now())
+  location           Location @relation(fields: [locationId], references: [id])
+  trade              Trade    @relation(fields: [tradeId], references: [id])
 }
 
 model GapAnalysis {
-  id               String   @id @default(cuid())
-  tradeId          String
-  trade            Trade    @relation(fields: [tradeId], references: [id])
-  locationId       String
-  location         Location @relation(fields: [locationId], references: [id])
-  currentDemand    Int
-  currentCapacity  Int
-  gap              Int      // currentCapacity - currentDemand (negative means shortage)
-  status           String   // UNDERSUPPLY, OVERSUPPLY, BALANCED
-  severity         String   // CRITICAL_SHORTAGE, HIGH_SHORTAGE, BALANCED, OVERSUPPLY, SEVERE_OVERSUPPLY
-  period           String
-  
-  alerts           Alert[]
-  createdAt        DateTime @default(now())
+  id              String   @id @default(cuid())
+  tradeId         String
+  locationId      String
+  currentDemand   Int
+  currentCapacity Int
+  gap             Int
+  status          String
+  severity        String
+  period          String
+  createdAt       DateTime @default(now())
+  alerts          Alert[]
+  location        Location @relation(fields: [locationId], references: [id])
+  trade           Trade    @relation(fields: [tradeId], references: [id])
 }
 
 model Alert {
   id            String      @id @default(cuid())
   gapAnalysisId String
-  gapAnalysis   GapAnalysis @relation(fields: [gapAnalysisId], references: [id])
   message       String
-  priority      String      // HIGH, MEDIUM, LOW
+  priority      String
   createdAt     DateTime    @default(now())
+  gapAnalysis   GapAnalysis @relation(fields: [gapAnalysisId], references: [id])
 }
