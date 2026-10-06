@@ -2,11 +2,11 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-export default function PlannerView() {
+function PlannerContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -232,5 +232,13 @@ export default function PlannerView() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PlannerView() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background text-white flex items-center justify-center">Loading planner...</div>}>
+      <PlannerContent />
+    </Suspense>
   );
 }
